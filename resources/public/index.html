@@ -1,54 +1,55 @@
 <!doctype html>
 <html>
 
-<head>
+  <head>
     <title>Game!</title>
     <style>
-        body {
-            background-color: black;
-        }
+      body {
+        background-color: black;
+      }
 
-        #gameCanvas {
-            background-color: black;
-            width: 640px;
-            height: 360px;
-            margin: auto;
-            align: center;
-        }
+      #gameCanvas {
+        background-color: black;
+        width: 640px;
+        height: 360px;
+        margin: auto;
+        align: center;
+      }
 
-        #scoreboard {
-            text-align: center;
-            font-family: Segoe UI, Helvetica, Ubuntu, sans-serif;
-            color: white;
-        }
+      #scoreboard {
+        text-align: center;
+        font-family: Segoe UI, Helvetica, Ubuntu, sans-serif;
+        color: white;
+      }
 
-        #scores {
-            font-size: 600%;
-            padding: 0;
-            margin: 0;
-            color: white;
-        }
+      #scores {
+        font-size: 600%;
+        padding: 0;
+        margin: 0;
+        color: white;
+      }
 
-        #title {
-            background-color: white;
-            color: black;
-        }
+      #title {
+        background-color: white;
+        color: black;
+      }
     </style>
-</head>
+  </head>
 
-<body onload='three_cljs.core.init();'>
+  <body onload='three_cljs.core.init();'>
     <div id='gameCanvas'></div>
     <div id='scoreboard'>
-        <h1 id='scores'>0-0</h1>
-        <h1 id='title'>3D PONG</h1>
-        <h2 id='winnerBoard'>First to 7 wins!</h2>
-        <h3>A - move left
-			<br>D - move right</h3>
+      <h1 id='scores'>0-0</h1>
+      <h1 id='title'>3D PONG</h1>
+      <h2 id='winnerBoard'>First to 7 wins!</h2>
+      <h3>A - move left
+        <br>D - move right</h3>
     </div>
 
     <script src='js/three.min.js'></script>
-<!--     <script src='./js/keyboard.js'></script> -->
+    <script src='js/init-scene.js'></script>
+    <!--     <script src='./js/keyboard.js'></script> -->
     <script src='js/main.js'></script>
-</body>
+  </body>
 
 </html>
