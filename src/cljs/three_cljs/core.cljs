@@ -1,25 +1,10 @@
 (ns three-cljs.core
   (:require [reagent.core :as r]
-            [re-frame.core :as rf]))
-
-(defn create_sphere
-  [radius segments rings]
-  (let [geometry (THREE.SphereGeometry. radius segments rings)
-        material (THREE.MeshLambertMaterial. #js {"color" 0xD43001})]
-    (THREE.Mesh. geometry material)))
-
-(defn create_plane
-  [width height quality]
-  (let [geometry (THREE.PlaneGeometry. (* .95 width) height quality quality)
-        material (THREE.MeshLambertMaterial. #js {:color 0x4BD121})]
-    (THREE.Mesh. geometry material)))
-
-(defn create_paddle
-  [width height depth quality color]
-  (let [geometry (THREE.CubeGeometry. width height depth quality quality quality)
-        material (THREE.MeshLambertMaterial. #js {"color" color})]
-    (THREE.Mesh. geometry material)))
-
+            [re-frame.core :as rf]
+            [three-cljs.handlers]
+            [three-cljs.input :refer [add-event-listeners]]
+            [three-cljs.draw :refer [draw]]
+            [three-cljs.meshes :refer [create_plane create_sphere create_paddle]]))
 
 (def WIDTH 640)
 (def HEIGHT 360)
@@ -54,33 +39,12 @@
       (set! (.-x ball.position) (+ ball-x (* ballDirX ballSpeed)))
       (set! (.-y ball.position) (+ ball-y (* ballDirY ballSpeed))))))
 
-
-(defn- key-press-handler [event]
-  (let [keycode (.-keyCode event)]
-    (js/console.log keycode)))
-
-(.addEventListener js/window "keydown" key-press-handler)
-
-(defn draw
-  []
-;;   draw THREE.JS scene
-  (.render renderer scene camera)
-
-;;   loop the draw() function
-  (js/requestAnimationFrame draw)
-
-  (ball-physics)
-
-;;   reposition camera
-  (set! (.-x camera.position) (- (.-x paddle1.position) 100))
-  (set! (.-z camera.position) (+ (.-z paddle1.position) 100))
-  (set! (.-z camera.rotation) (* -90 (/ (.-PI js/Math) 180)))
-  (set! (.-y camera.rotation) (* -60 (/ (.-PI js/Math) 180)))
-  )
-
 (defn ^:export init
   []
   (let [c (.getElementById js/document "gameCanvas")]
+
+    (rf/dispatch [:initialize-db])
+
 ;;     start renderer
     (.setSize renderer WIDTH HEIGHT)
 ;;     attach render-suplied DOM element
@@ -115,4 +79,5 @@
     (set! (.-z paddle1.position) paddle-depth)
     (set! (.-z paddle2.position) paddle-depth)
 
+    (add-event-listeners)
     (draw)))
