@@ -6,7 +6,13 @@
 (register-handler
   :initialize-db
   (fn [_ _]
-    {:game {:field-size [400 200]}}))
+    {:config {:canvas-size [640 360]}
+     :game {:field-size [400 200]
+            :entities {:ball {:x -40
+                              :y -40
+                              :ball-y-dir 1
+                              :ball-x-dir 1
+                              :ball-speed 2}}}}))
 
 (register-handler
   :draw-scene
@@ -32,8 +38,7 @@
 (register-handler
   :initialize-scene
   (fn [db _]
-    (let [WIDTH 640
-          HEIGHT 360
+    (let [[WIDTH HEIGHT] (get-in db [:config :canvas-size])
           c (.getElementById js/document "gameCanvas")
           camera (initialize-camera [50 (/ WIDTH HEIGHT) 0.1 10000] [0 0 320] "my-camera")
           point-light (initialize-light 0xF8D898 2.5 10000 [500 600 900] "my-light")]
@@ -71,23 +76,32 @@
 (defn- update-webgl-obj [obj-name prop-vals]
   (let [obj (.getObjectByName js/scene obj-name)]
     (doseq [prop-val prop-vals]
-;;       (js/console.log  (second prop-val))
-      (apply (aset obj) prop-val)
-      )))
+      (apply (partial aset obj) prop-val))))
+
+(defn- get-ball-y-dir [x y dir-y field-size]
+  (let [[field-width field-height] field-size]
+    (if (or (<= y (- (/ field-height 2)))
+            (>= y (/ field-height 2)))
+      (- dir-y)
+      dir-y)))
 
 (register-handler
   :tick-ball
   (fn [db _]
-      (if-let [ball (.getObjectByName js/scene "my-ball")]
-        (let[ball-x (.-x ball.position)
-             ball-y (.-y ball.position)
-             [field-width field-height] (get-in db [:game :field-size])
-             new-x (+ ball-x 2)
-             new-y (+ ball-y 2)]
-;;           (set! (.-x ball.position) (+ ball-x 2))
-          (update-webgl-obj "my-ball" [["position" "x" new-x]
-                                       ["position" "y" new-y]
-                                       ])
-;;           (aset ball "position" "y" new-x)
-          db)
-        db)))
+    (if-let [ball (.getObjectByName js/scene "my-ball")]
+      (let[ball-x (get-in db [:game :entities :ball :x])
+           ball-y (get-in db [:game :entities :ball :y])
+           field-size (get-in db [:game :field-size])
+           ball-speed (get-in db [:game :entities :ball :ball-speed])
+           ball-y-dir (get-in db [:game :entities :ball :ball-y-dir])
+           ball-y-dir (get-ball-y-dir ball-x ball-y ball-y-dir field-size)
+           new-x (+ ball-x ball-speed)
+           new-y (+ ball-y (* ball-y-dir ball-speed))]
+        (update-webgl-obj "my-ball" [["position" "x" new-x]
+                                     ["position" "y" new-y]])
+        (assoc-in db [:game :entities :ball] {:x new-x
+                                              :y new-y
+                                              :ball-speed ball-speed
+                                              :ball-y-dir ball-y-dir
+                                              :ball-x-dir 1}))
+      db)))
