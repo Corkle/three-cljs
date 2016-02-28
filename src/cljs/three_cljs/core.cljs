@@ -3,6 +3,7 @@
             [re-frame.core :as rf]
             [three-cljs.handlers]
             [three-cljs.subscriptions]
+            [three-cljs.debug]
             [three-cljs.input :refer [add-event-listeners]]))
 
 

@@ -1,7 +1,7 @@
 (ns three-cljs.meshes)
 
 (defn create_sphere
-  [radius segments rings [x y z] name options]
+  [radius segments rings name options]
   (let [geometry (THREE.SphereGeometry. radius segments rings)
         material (THREE.MeshLambertMaterial. #js {"color" (:color options)})
         sphere (THREE.Mesh. geometry material)]
@@ -26,4 +26,5 @@
     (set! (.-x paddle.position) x)
     (set! (.-y paddle.position) y)
     (set! (.-z paddle.position) z)
+    (set! (.-name paddle) name)
     paddle))
