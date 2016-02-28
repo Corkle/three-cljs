@@ -1,20 +1,23 @@
-(ns three-cljs.input)
+(ns three-cljs.input
+  (:require [re-frame.core :refer [dispatch]]))
 
 (def key-name
   {65 :a
    87 :w
    68 :d
-   83 :s})
+   83 :s
+   80 :p})
 
 (defn- key-down-handler [event]
-  (let [keycode (key-name (.-keyCode event))]
-    (case keycode
-      :s (js/console.log js/scene)
+  (let [keycode (.-keyCode event)
+         key-pressed (key-name keycode)]
+    (case key-pressed
+      :p (dispatch [:pause-game])
       (js/console.log (str "down: " keycode)))))
 
 (defn- key-up-handler [event]
   (let [keycode (.-keyCode event)]
-    (js/console.log (str "up: "(key-name keycode)))))
+    ()))
 
 (defn add-event-listeners []
   (.addEventListener js/window "keydown" key-down-handler)

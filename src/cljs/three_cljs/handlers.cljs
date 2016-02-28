@@ -8,12 +8,19 @@
   (fn [_ _]
     (let [camera-rotation [0 (* -60 (/ (.-PI js/Math) 180)) (* -90 (/ (.-PI js/Math) 180))]]
       {:config {:canvas-size [640 360]}
+       :webgl {}
        :game {:field-size [400 200]
+              :running? true
               :camera {:pos [0 0 0]
                        :rotation camera-rotation}
-              :entities {:ball {:pos [0 0 0]
-                                :dir [1 1]
-                                :speed 2}}}})))
+              :entities {}}})))
+
+;; --------- Game Logic
+
+(register-handler
+  :pause-game
+  (fn [db _]
+    (update-in db [:game :running?] not)))
 
 ;; --------- WegGL Initializers
 
@@ -63,9 +70,11 @@
           paddle2 (create_paddle paddle-width paddle-height paddle-depth 1 [0 0 0] "opponent-paddle" {:color 0xFF4045})]
 
       (dispatch [:add-to-scene [ball plane paddle1 paddle2]])
-      (dispatch [:update-player-paddle-webgl])
-      (dispatch [:update-opponent-paddle-webgl])
+      (dispatch [:complete-webgl-initialize])
       (-> db
+          (assoc-in [:game :entities :ball] {:pos [0 0 0]
+                                             :dir [1 1]
+                                             :speed 2})
           (assoc-in [:game :entities :player-paddle] {:pos [(+ (/ field-width -2) 10) 0 0]
                                                       :size [10 30 10]})
           (assoc-in [:game :entities :opponent-paddle] {:pos [(+ (/ field-width 2) -10) 0 0]
@@ -81,49 +90,15 @@
     db))
 
 (register-handler
+  :complete-webgl-initialize
+  (fn [db _]
+    (assoc-in db [:webgl :initialized?] true)))
+
+(register-handler
   :draw-scene
   (fn [db _]
     (draw)
     db))
-
-(defn- update-webgl-obj [obj-name prop-vals]
-  (let [obj (.getObjectByName js/scene obj-name)]
-    (doseq [prop-val prop-vals]
-      (apply (partial aset obj) prop-val))))
-
-(register-handler
-  :update-player-paddle-webgl
-  (fn [db _]
-    (let [player-paddle (get-in db [:game :entities :player-paddle])
-          [pos-x pos-y pos-z] (:pos player-paddle)]
-      (update-webgl-obj "player-paddle" [["position" "x" pos-x]
-                                         ["position" "y" pos-y]
-                                         ["position" "z" pos-z]])
-      db)))
-
-(register-handler
-  :update-opponent-paddle-webgl
-  (fn [db _]
-    (let [opponent-paddle (get-in db [:game :entities :opponent-paddle])
-          [pos-x pos-y pos-z] (:pos opponent-paddle)]
-      (update-webgl-obj "opponent-paddle" [["position" "x" pos-x]
-                                           ["position" "y" pos-y]
-                                           ["position" "z" pos-z]])
-      db)))
-
-(register-handler
-  :update-camera-webgl
-  (fn [db _]
-    (let [camera (get-in db [:game :camera])
-          [pos-x pos-y pos-z] (:pos camera)
-          [rotation-x rotation-y rotation-z] (:rotation camera)]
-      (update-webgl-obj "my-camera" [["position" "x" pos-x]
-                                     ["position" "y" pos-y]
-                                     ["position" "z" pos-z]
-                                     ["rotation" "x" rotation-x]
-                                     ["rotation" "y" rotation-y]
-                                     ["rotation" "z" rotation-z]])
-      db)))
 
 ;; --------- Entity Events
 
@@ -137,21 +112,16 @@
 (register-handler
   :tick-ball
   (fn [db _]
-    (if-let [ball (.getObjectByName js/scene "my-ball")]
-      (let[[x y] (get-in db [:game :entities :ball :pos])
-           field-size (get-in db [:game :field-size])
-           ball-speed (get-in db [:game :entities :ball :speed])
-           [dir-x dir-y] (get-in db [:game :entities :ball :dir])
-           dir-y (get-ball-y-dir x y dir-y field-size)
-           new-x (+ x ball-speed)
-           new-y (+ y (* dir-y ball-speed))]
-        (if-not (or (= x new-x) (= y new-y))
-          (update-webgl-obj "my-ball" [["position" "x" new-x]
-                                       ["position" "y" new-y]]))
-        (assoc-in db [:game :entities :ball] {:pos [new-x new-y 0]
-                                              :speed ball-speed
-                                              :dir [dir-x dir-y]}))
-      db)))
+    (let[[x y] (get-in db [:game :entities :ball :pos])
+         field-size (get-in db [:game :field-size])
+         ball-speed (get-in db [:game :entities :ball :speed])
+         [dir-x dir-y] (get-in db [:game :entities :ball :dir])
+         dir-y (get-ball-y-dir x y dir-y field-size)
+         new-x (+ x ball-speed)
+         new-y (+ y (* dir-y ball-speed))]
+      (assoc-in db [:game :entities :ball] {:pos [new-x new-y 0]
+                                            :speed ball-speed
+                                            :dir [dir-x dir-y]}))))
 
 (register-handler
   :update-camera
@@ -159,5 +129,4 @@
     (let [camera (get-in db [:game :camera])
           player-paddle (get-in db [:game :entitites :player-paddle])
           [player-x player-y player-z] (:pos player-paddle)]
-            (dispatch [:update-camera-webgl])
       (assoc-in db [:game :camera :pos] [(+ player-x -300) 0 (+ player-z 100)]))))
