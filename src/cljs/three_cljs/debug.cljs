@@ -39,7 +39,9 @@
           "X"]]
    [debug-button [] "App-State"]
    [debug-button [:config] "Config"]
-   [debug-button [:game :entities] "Entities"]
+   [debug-button [:game] "Game"]
+   [debug-button [:game :world] "World"]
+   [debug-button [:game :world :entities] "Entities"]
    [:div#app-state]])
 
 (close-debug)

@@ -1,53 +1,26 @@
 (ns three-cljs.webgl.objs
-  (:require [re-frame.core :refer [subscribe]])
+  (:require [re-frame.core :refer [subscribe dispatch]]
+            [three-cljs.webgl.meshes :refer [add-webgl-mesh]])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
-(defn- update-webgl-obj [obj-name prop-vals]
-  (if-let [obj (.getObjectByName js/scene obj-name)]
-    (doseq [prop-val prop-vals]
-      (apply (partial aset obj) prop-val))
-    (js/console.log "No object: " obj-name)))
+(defn- update-webgl-pos [id [x y z]]
+  (let [obj (.getObjectByName js/scene (str id))]
+    (aset obj "position" "x" x)
+    (aset obj "position" "y" y)
+    (aset obj "position" "z" z)
+    nil))
 
-(defn- update-webgl-pos [name [x y z]]
-  (update-webgl-obj name [["position" "x" x]
-                          ["position" "y" y]
-                          ["position" "z" z]]))
+(defn- watch-obj [entity]
+  (fn [entity]
+    (let [id (:id entity)
+          pos (:pos entity)]
+      (update-webgl-pos id pos))))
 
-(defn- ball-obj []
-  (let [ball (subscribe [:ball])
-        pos (reaction (:pos @ball))]
+(defn- webgl-objs []
+  (let [entities (subscribe [:entities])]
     (fn []
-      (update-webgl-pos "my-ball" @pos))))
-
-(defn- player-paddle-obj []
-  (let [player-paddle (subscribe [:player-paddle])
-        pos (reaction (:pos @player-paddle))]
-    (fn []
-      (update-webgl-pos "player-paddle" @pos))))
-
-(defn- opponent-paddle-obj []
-  (let [opponent-paddle (subscribe [:opponent-paddle])
-        pos (reaction (:pos @opponent-paddle))]
-    (fn []
-      (update-webgl-pos "opponent-paddle" @pos))))
-
-(defn- camera-obj []
-  (let [camera (subscribe [:camera])
-        pos (reaction (:pos @camera))
-        rotation (reaction (:rotation @camera))]
-    (fn []
-      (let [[pos-x pos-y pos-z] @pos
-            [rotation-x rotation-y rotation-z] @rotation]
-        (update-webgl-obj "my-camera" [["position" "x" pos-x]
-                                       ["position" "y" pos-y]
-                                       ["position" "z" pos-z]
-                                       ["rotation" "x" rotation-x]
-                                       ["rotation" "y" rotation-y]
-                                       ["rotation" "z" rotation-z]])))))
-
-(defn webgl-objs []
-  [:div#objs
-   [camera-obj]
-   [player-paddle-obj]
-   [opponent-paddle-obj]
-   [ball-obj]])
+      [:div#objs
+       [:div "Game Loaded."]
+       (for [{:keys [id] :as entity} (vals @entities)]
+         ^{:key id} [watch-obj entity])
+       ])))

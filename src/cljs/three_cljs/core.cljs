@@ -5,22 +5,19 @@
             [three-cljs.subscriptions]
             [three-cljs.debug]
             [three-cljs.input :refer [add-event-listeners]]
-            [three-cljs.webgl.objs :refer [webgl-objs]]))
+            [three-cljs.webgl.scene :refer [webgl-scene]]))
 
 (defn loading-panel []
-  (let [game-ready? (subscribe [:game-initialized?])
-        webgl-ready? (subscribe [:webgl-initialized?])]
+  (let [db-ready? (subscribe [:db-initialized?])]
     (fn []
-      (let [ready? (and @game-ready? @webgl-ready?)]
-        (if-not ready?
-          [:div "Initiazling ..."]
-          [webgl-objs])))))
+        (if-not @db-ready?
+          [:div#init-db "Initiazling DB..."]
+          [webgl-scene]))))
 
 (defn ^:export init
   []
   (let [c (.getElementById js/document "gameCanvas")]
     (dispatch [:initialize-db])
-    (dispatch [:initialize-scene])
     (add-event-listeners)
     (r/render [loading-panel] (.getElementById js/document "game"))
-    ))
+    (dispatch [:set-camera])))

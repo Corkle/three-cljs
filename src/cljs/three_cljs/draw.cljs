@@ -2,18 +2,17 @@
   (:require [re-frame.core :refer [subscribe dispatch]]))
 
 (defn draw []
-  (let [camera (.getObjectByName js/scene "my-camera")
+  (let [camera (subscribe [:game-camera])
+        camera-obj (.getObjectByName js/scene (str (:id @camera)))
         running? (subscribe [:game-running?])]
 
     ;;   loop the draw() function
     (js/requestAnimationFrame draw)
 
     ;;   draw THREE.JS scene
-    (. js/renderer (render js/scene camera))
+    (. js/renderer (render js/scene camera-obj))
 
     (if running?
-      (do
-        ;;     update scene
-        (dispatch [:tick-ball])
-        (dispatch [:update-camera])))
+      ;;     tick next frame
+        (dispatch [:tick]))
     ))

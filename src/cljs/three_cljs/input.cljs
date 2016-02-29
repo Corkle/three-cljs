@@ -13,6 +13,8 @@
          key-pressed (key-name keycode)]
     (case key-pressed
       :p (dispatch [:pause-game])
+      :a (dispatch [:move-player :up])
+      :d (dispatch [:move-player :down])
       (js/console.log (str "down: " keycode)))))
 
 (defn- key-up-handler [event]
