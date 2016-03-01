@@ -13,7 +13,7 @@
                    [org.clojure/tools.nrepl   "0.2.12"         :scope "test"]
                    [reagent                   "0.6.0-alpha"    :scope "provided"]
                    [re-frame                  "0.7.0-alpha-2"  :scope "provided"]
-                   [cljsjs/three "0.0.72-0" :scope "provided"]
+;;                    [cljsjs/three "0.0.72-0" :scope "provided"]
                    ])
 
 (require '[adzerk.boot-cljs       :refer [cljs]]
@@ -37,5 +37,5 @@
   []
   (comp
     (cljs :optimizations :advanced
-          :compiler-options {:externs ["externs/three.ext.js"]})
+          :compiler-options {:externs ["externs/three.ext.js" "externs/dat.gui.ext.js"]})
     (target :dir #{"target"})))
