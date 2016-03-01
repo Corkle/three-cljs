@@ -38,10 +38,6 @@
                                                     :margin "5px"}}
           "X"]]
    [debug-button [] "App-State"]
-   [debug-button [:config] "Config"]
-   [debug-button [:game] "Game"]
-   [debug-button [:game :world] "World"]
-   [debug-button [:game :world :entities] "Entities"]
    [:div#app-state]])
 
 (close-debug)

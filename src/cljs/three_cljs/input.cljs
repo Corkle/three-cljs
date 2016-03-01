@@ -1,5 +1,4 @@
-(ns three-cljs.input
-  (:require [re-frame.core :refer [dispatch]]))
+(ns three-cljs.input)
 
 (def key-name
   {65 :a
@@ -12,9 +11,7 @@
   (let [keycode (.-keyCode event)
          key-pressed (key-name keycode)]
     (case key-pressed
-      :p (dispatch [:pause-game])
-      :a (dispatch [:move-player :up])
-      :d (dispatch [:move-player :down])
+      :p (js/console.log "p")
       (js/console.log (str "down: " keycode)))))
 
 (defn- key-up-handler [event]
